@@ -177,8 +177,7 @@ data:
 '''
 
 import time
-import traceback
-from ansible.module_utils._text import to_native
+import json
 from ansible.module_utils.basic import AnsibleModule, env_fallback
 from ansible.module_utils.digital_ocean import DigitalOceanHelper
 
@@ -255,7 +254,7 @@ class DODroplet(object):
             self.module.exit_json(changed=True)
         response = self.rest.post('droplets', data=self.module.params)
         json_data = response.json
-        if response.status_code == 422 and json_data['message'] == 'Region is not available':
+        if response.status_code >= 400:
             self.module.fail_json(changed=False, msg=json_data['message'])
         if self.wait:
             json_data = self.ensure_power_on(json_data['droplet']['id'])
@@ -330,10 +329,7 @@ def main():
         supports_check_mode=True,
     )
 
-    try:
-        core(module)
-    except Exception as e:
-        module.fail_json(msg=to_native(e), exception=traceback.format_exc())
+    core(module)
 
 
 if __name__ == '__main__':
