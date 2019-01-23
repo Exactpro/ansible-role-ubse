@@ -1,0 +1,2 @@
+- include_tasks: "{{vm_provider}}.yml"
+  when: vm_provider is defined
