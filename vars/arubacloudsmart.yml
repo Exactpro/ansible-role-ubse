@@ -1,0 +1,13 @@
+# Aruba Smart Server settings
+#arubau: "{{ lookup('ini', 'user   section='+acct+'  '+secrets) }}"
+#arubap: "{{ lookup('ini', 'passwd section='+acct+'  '+secrets) }}"
+#secrets: file=~/.ssh/aruba/ansible.ini
+#acct: acct0
+#wait_minutes: 20 # max wait for VM re-init, usually a bit over 3 minutes
+#wait_ssh:      5 # max wait for SSH to come up
+
+#vps_name: myVM1
+#dc: 1 # [127] IT[123], 3 - CZ1, 4 - FR1, 5 - DE1, 6 - UK1, 8 - PL1.
+#size:   # S 1vcpu-1gb-20, M 1vcpu-2gb-40, L 2vcpu-4gb-80, X 4vcpu-8gb-160.
+#image:
+#needIPv6: yes

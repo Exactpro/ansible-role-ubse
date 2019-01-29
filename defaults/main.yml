@@ -1,0 +1,7 @@
+needIPv6: yes
+root_pubkey:  "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+admin_pubkey: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+admin_user: "{{ lookup('env', 'USERNAME') }}"
+admin_groups: sudo
+ssh_set_port: 2222
+trim_list: debian8

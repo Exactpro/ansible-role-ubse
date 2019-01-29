@@ -2,7 +2,7 @@
   it_aruba_smart:
     user: "{{ aruba_account }}"
     password: "{{ aruba_password }}"
-    dc: "{{ dc_i }}"
+    dc: "{{ dc }}"
   register: r1
   failed_when: vps_name not in r1.srv | map(attribute='name') | list
 # debug: var=r1
@@ -12,7 +12,7 @@
     state: pristine
     user: "{{ aruba_account }}"
     password: "{{ aruba_password }}"
-    dc: "{{ dc_i }}"
+    dc: "{{ dc }}"
     name: "{{ vps_name }}"
     wait: true
     wait_time: "{{wait_minutes * 60}}"
