@@ -16,6 +16,7 @@ T.b.d.
 
 ## Example Playbook
 
+```
   - hosts: localhost
     vars:
       vm_provider: digitalocean
@@ -32,6 +33,7 @@ T.b.d.
       - role: mz0.ubse
     tasks:
       - debug: msg="Droplet {{vm.data.droplet.name}} {{vm.data.ip_address}}"
+```
 
 ## License
 
