@@ -1,7 +1,5 @@
 # Ansible Role: Uniform basic server
 
-[![Ansible galaxy][galaxy badge]][galaxy]
-
 Launch / Re-launch Digital Ocean's droplet or ArubaCloud Smart server
 
 ## Requirements
