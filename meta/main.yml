@@ -1,17 +1,40 @@
----
 dependencies: []
 galaxy_info:
   role_name: ubse
   author: mz@exactpro.com
-  description: Launch/Re-launch Uniform VMs across DigitalOcean and ArubaCloud Smart.
+  description: Launch Uniform VMs across DigitalOcean and ArubaCloud Smart.
   company: "Exactpro Systems LLC"
   license: "license (BSD, MIT)"
   min_ansible_version: 2.7
   platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
     - name: Debian
       versions:
         - all
+    - name: Fedora
+      versions:
+        - all
+    - name: FreeBSD
+      versions:
+        - all
+    - name: SLES
+      versions:
+        - all
+    - name: opensuse
+      versions:
+        - all
+    - name: MacOSX
+      versions:
+        - all
     - name: GenericUNIX
+      versions:
+        - all
+    - name: GenericLinux
       versions:
         - all
   galaxy_tags:
