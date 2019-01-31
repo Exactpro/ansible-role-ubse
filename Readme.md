@@ -30,9 +30,9 @@ T.b.d.
       needIPv6: yes
       private_net: no
     roles:
-      - role: mz0.ubse
+      - role: exactpro.ubse
     tasks:
-      - debug: msg="Droplet {{vm.data.droplet.name}} {{vm.data.ip_address}}"
+      - debug: msg="Droplet {{ vm.data.droplet.name }} {{ vm.data.ip_address }}"
 ```
 
 ## License
