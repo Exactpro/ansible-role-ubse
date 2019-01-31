@@ -1,5 +1,5 @@
 needIPv6: yes
-root_pubkey:  "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+root_pubkey: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 admin_pubkey: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 admin_user: "{{ lookup('env', 'USERNAME') }}"
 admin_groups: sudo

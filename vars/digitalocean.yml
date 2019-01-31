@@ -1,3 +1,4 @@
+---
 #do_api_token: "{{ lookup('file', '~/.ssh/do/my.apikey') }}"
 #wait_minutes:  4     # max time to create VM, usually it's under 2 minutes
 #wait_ssh:     25     # max wait for SSH to come up
@@ -5,7 +6,7 @@
 ## DO droplet params - define them in your playbook
 #needIPv6: yes
 #private_net: no
-#dc: fra1         # ams[23], fra1, lon1; blr1 IN, sgp1 SG; nyc[123], sfo[12], tor1.
-#size:  s-1vcpu-1gb   # s-1vcpu-2gb, s-2vcpu-2gb, s-1vcpu-3gb, ..., s-32vcpu-192gb.
+#dc: fra1      # ams[23], fra1, lon1; blr1 IN, sgp1 SG; nyc[123], sfo[12], tor1.
+#size:  s-1vcpu-1gb  # s-1vcpu-2gb, s-2vcpu-2gb, s-1vcpu-3gb, .., s-32vcpu-192gb
 #image: debian-9-x64
 #vps_name: s1.example.com # DO sets PTR for IPv4 and IPv6 addresses if it's FQDN

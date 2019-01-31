@@ -5,7 +5,6 @@
     dc: "{{ dc }}"
   register: r1
   failed_when: vps_name not in r1.srv | map(attribute='name') | list
-# debug: var=r1
 
 - name: Ensure server is like new - re-image from current template - ETA 3-{{wait_minutes}} minutes
   it_aruba_smart_vm:
@@ -15,10 +14,10 @@
     dc: "{{ dc }}"
     name: "{{ vps_name }}"
     wait: true
-    wait_time: "{{wait_minutes * 60}}"
+    wait_time: "{{ wait_minutes * 60 }}"
     timeout: 12
   register: vm
 
 - name: Delete old SSH host keys if any
-  shell: "ssh-keygen -R {{vm.srv.ip4}}; ssh-keygen -R '[{{vm.srv.ip4}}]:{{ssh_set_port}}'"
+  shell: "ssh-keygen -R {{ vm.srv.ip4 }}; ssh-keygen -R '[{{ vm.srv.ip4 }}]:{{ ssh_set_port }}'"
   changed_when: false

@@ -1,4 +1,4 @@
-
+---
 ##### TODO consider resetting ansible_port in launch-/relaunch- playbooks ###
 - name: Check port 22 is open
   wait_for:
@@ -24,13 +24,13 @@
   become: yes
   apt:
     update_cache: no
-    pkg: ['sysvinit-core','sysvinit-utils']
+    pkg: ['sysvinit-core', 'sysvinit-utils']
     install_recommends: no
   register: initsystem
 
 - name: Reboot to replace systemd (ETA 23 seconds) if sysvinit just installed
   become: yes
-  reboot: # Ansible 2.7 required
+  reboot:  # Ansible 2.7 required
   when: initsystem is changed
 
 - name: Replace systemd (stage 2 - uninstall systemd)
