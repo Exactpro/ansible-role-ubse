@@ -2,22 +2,14 @@
 dependencies: []
 
 galaxy_info:
-  author: mz0
-  description: Java for Linux
+  role_name: ubse
+  author: mz@exactpro.com
+  description: Launch/Re-launch Uniform VMs across DigitalOcean and ArubaCloud Smart.
   company: "Exactpro Systems LLC"
   license: "license (BSD, MIT)"
   min_ansible_version: 2.7
   platforms:
-    - name: EL
-      versions:
-        - all
-    - name: Fedora
-      versions:
-        - all
     - name: Debian
-      versions:
-        - all
-    - name: Ubuntu
       versions:
         - all
     - name: GenericUNIX

@@ -10,5 +10,5 @@
      ipv6: "{{ needIPv6 }}"
      private_networking: "{{ private_net }}"
      oauth_token: "{{ do_api_token }}"
-     wait_timeout: "{{wait_minutes * 60}}" # wait for DO response, default is 120
+     wait_timeout: "{{ wait_minutes * 60 }}" # wait for DO response, default is 120
   register: vm
