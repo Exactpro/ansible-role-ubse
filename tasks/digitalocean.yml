@@ -1,14 +1,39 @@
-- name: Find or create Droplet
-  digital_ocean_droplet:
-     state: present
-     unique_name: yes
-     name: "{{ vps_name }}"
-     region_id: "{{ dc }}"
-     size_id: "{{ size }}"
-     image: "{{ image }}"
-     ssh_keys: "{{ pubkeyid }}"
-     ipv6: "{{ needIPv6 }}"
-     private_networking: "{{ private_net }}"
-     oauth_token: "{{ do_api_token }}"
-     wait_timeout: "{{ wait_minutes * 60 }}"  # default is 120
-  register: vm
+- block:
+
+  - name: If state==pristine ensure server is like new. ETA 2-{{wait_minutes}} minutes.
+    digital_ocean_droplet:
+      state: pristine
+      name: "{{ vm_name }}"
+      unique_name: yes
+      image: "{{ image | default(None) }}"
+      oauth_token: "{{ do_api_token }}"
+      wait_timeout: "{{ wait_minutes * 60 }}"
+    register: vm0
+
+  - name: Delete old SSH host keys if any
+    shell: "ssh-keygen -R {{ vm0.data.ip_address }}; ssh-keygen -R '[{{ vm0.data.ip_address }}]:{{ ssh_set_port }}'"
+    changed_when: false
+    when: vm0 is success
+
+  when: state == 'pristine'
+
+
+- block:
+
+  - name: If state==present find or create server, ensure it's ON. ETA 2-{{wait_minutes}} minutes.
+    digital_ocean_droplet:
+      state: present
+      unique_name: yes
+      name: "{{ vm_name }}"
+      region_id: "{{ dc }}"
+      size_id: "{{ size }}"
+      image: "{{ image }}"
+      ssh_keys: "{{ pubkeyid }}"
+      ipv6: "{{ needIPv6 }}"
+      private_networking: "{{ private_net }}"
+      oauth_token: "{{ do_api_token }}"
+      wait_timeout: "{{ wait_minutes * 60 }}"  # default is 120
+      wait: true
+    register: vm
+
+  when: state == 'present'

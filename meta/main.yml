@@ -1,6 +1,6 @@
 dependencies: []
 galaxy_info:
-  role_name: ubse
+  role_name: um
   author: mz@exactpro.com
   description: Launch Uniform VMs across DigitalOcean and ArubaCloud Smart.
   company: "Exactpro Systems LLC"

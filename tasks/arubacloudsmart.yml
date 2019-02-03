@@ -1,23 +1,37 @@
-- name: Ensure server exists
-  it_aruba_smart:
-    user: "{{ aruba_account }}"
-    password: "{{ aruba_password }}"
-    dc: "{{ dc }}"
-  register: r1
-  failed_when: vps_name not in r1.srv | map(attribute='name') | list
+- block:
 
-- name: Ensure server is like new - re-image from current template - ETA 3-{{wait_minutes}} minutes
-  it_aruba_smart_vm:
-    state: pristine
-    user: "{{ aruba_account }}"
-    password: "{{ aruba_password }}"
-    dc: "{{ dc }}"
-    name: "{{ vps_name }}"
-    wait: true
-    wait_time: "{{ wait_minutes * 60 }}"
-    timeout: 12
-  register: vm
+  - name: If state==pristine ensure server is like new. ETA 3-{{wait_minutes}} minutes.
+    it_aruba_smart_vm:
+      state: pristine
+      user: "{{ aruba_account }}"
+      password: "{{ aruba_password }}"
+      dc: "{{ dc }}"
+      name: "{{ vm_name }}"
+      wait: true
+      wait_time: "{{ wait_minutes * 60 }}"
+      timeout: 12
+    register: vm0
 
-- name: Delete old SSH host keys if any
-  shell: "ssh-keygen -R {{ vm.srv.ip4 }}; ssh-keygen -R '[{{ vm.srv.ip4 }}]:{{ ssh_set_port }}'"
-  changed_when: false
+  - name: Delete old SSH host keys if any
+    shell: "ssh-keygen -R {{ vm0.srv.ip4 }}; ssh-keygen -R '[{{ vm0.srv.ip4 }}]:{{ ssh_set_port }}'"
+    changed_when: false
+    when: vm0 is success
+
+  when: state == 'pristine'
+
+
+- block:
+
+  - name: If state==present find or create server, ensure it's ON. ETA 3-{{wait_minutes}} minutes.
+    it_aruba_smart_vm:
+      state: present
+      user: "{{ aruba_account }}"
+      password: "{{ aruba_password }}"
+      dc: "{{ dc }}"
+      name: "{{ vm_name }}"
+      wait: true
+      wait_time: "{{ wait_minutes * 60 }}"
+      timeout: 12
+    register: vm
+
+  when: state == 'present'

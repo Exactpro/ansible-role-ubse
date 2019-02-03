@@ -95,7 +95,7 @@ class SmartVM(object):
             self.name = det1[n]
             self.isON = det1[o]
             self.busy = det1[b]
-            return det1
+            return self.get_by_id(self.id)
         else:
             return None
 
