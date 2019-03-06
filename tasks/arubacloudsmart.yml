@@ -62,27 +62,75 @@
 
   when: state == 'present'
 
+- name: Return 'um' fact (on rebuild)
+  set_fact:
+    um:
+      ip4: "{{ vm0.srv.ip4 }}"
+      ip6: "{{ vm0.srv.ip6 | default(none) }}"
+      server: "{{ vm0.srv }}"
+  when: vm0 is success and vm0 is not skipped
+
+- name: Return 'um' fact (no rebuild)
+  set_fact:
+    um:
+      ip4: "{{ vm.srv.ip4 }}"
+      ip6: "{{ vm.srv.ip6 | default(none) }}"
+      server: "{{ vm.srv }}"
+  when: vm is success and vm is not skipped
+
+- name: Disable root password
+  user: name=root password='!'
+  delegate_to: "{{um.ip4}}"
+  vars:
+    ansible_user: root
+    ansible_ssh_extra_args: '-o PasswordAuthentication=no'
+
+- name: check presence of /dev/vg/lv_swap
+  shell: "if [ -b /dev/vg/lv_swap ]; then echo vg-lv_swap; fi"
+  delegate_to: "{{um.ip4}}"
+  register: res
+  changed_when: no
+  vars:
+    ansible_user: root
+
+- name: Flag swap LV found (skip otherwise).
+  set_fact: swap_lv=yes
+  when: res.stdout == "vg-lv_swap"
+
+- name: Flag swap LV not found (skip otherwise).
+  set_fact: swap_lv=no
+  when: res.stdout != "vg-lv_swap"
+
 - block:
 
-  - name: Return 'um' fact (on rebuild)
-    set_fact:
-      um:
-        ip4: "{{ vm0.srv.ip4 }}"
-        ip6: "{{ vm0.srv.ip6 | default(none) }}"
-        server: "{{ vm0.srv }}"
-    when: vm0 is success and vm0 is not skipped
-
-  - name: Return 'um' fact (no rebuild)
-    set_fact:
-      um:
-        ip4: "{{ vm.srv.ip4 }}"
-        ip6: "{{ vm.srv.ip6 | default(none) }}"
-        server: "{{ vm.srv }}"
-    when: vm is success and vm is not skipped
-
-  - name: Disable root password
-    user: name=root password='!'
+  - name: Turn-off swap
+    shell: "if [ -b /dev/vg/lv_swap ]; then /sbin/swapoff /dev/mapper/vg-lv_swap; fi"
     delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
-      ansible_ssh_extra_args: '-o PasswordAuthentication=no'
+
+  - name: Delete swap from /etc/fstab
+    lineinfile: dest=/etc/fstab line="/dev/mapper/vg-lv_swap none            swap    sw              0       0" state=absent
+    delegate_to: "{{um.ip4}}"
+    vars:
+      ansible_user: root
+
+  - name: Delete LV
+    shell: "/sbin/lvremove -f /dev/vg/lv_swap"
+    delegate_to: "{{um.ip4}}"
+    vars:
+      ansible_user: root
+
+  - name: Extend LV lv_root
+    shell: "/sbin/lvextend -l +100%FREE /dev/vg/lv_root"
+    delegate_to: "{{um.ip4}}"
+    vars:
+      ansible_user: root
+
+  - name: Extend lv_root's / filesystem
+    shell: "/sbin/resize2fs /dev/vg/lv_root"
+    delegate_to: "{{um.ip4}}"
+    vars:
+      ansible_user: root
+
+  when: swap_lv
