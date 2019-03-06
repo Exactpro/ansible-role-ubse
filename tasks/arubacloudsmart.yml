@@ -13,9 +13,35 @@
     register: vm0
 
   - name: Delete old SSH host keys if any
-    shell: "ssh-keygen -R {{ vm0.srv.ip4 }}; ssh-keygen -R '[{{ vm0.srv.ip4 }}]:{{ ssh_set_port }}'"
-    changed_when: false
+    known_hosts:
+      state: absent
+      host: "{{ vm0.srv.ip4 }}"
     when: vm0 is success
+
+# - name: Delete old SSH host keys if any
+#   shell: "ssh-keygen -R {{ vm0.srv.ip4 }}|grep updated || ssh-keygen -q -R '[{{ vm0.srv.ip4 }}]:{{ ssh_set_port }}' |grep updated"
+#   ignore_errors: yes
+#   register: known_hosts_updated
+#   changed_when: known_hosts_updated.rc == 0
+#   when: vm0 is success
+
+  - name: Add ssh pubkey to ~root/.ssh/authorized_keys
+    authorized_key: user=root state=present key={{ root_pubkey }}
+    delegate_to: "{{vm0.srv.ip4}}"
+    vars:
+      ansible_port: 22
+      ansible_ssh_pass: "{{ vm0.srv.password0 }}"
+      ansible_user: root
+      ansible_ssh_extra_args: '-o StrictHostKeyChecking=accept-new' # need OpenSSH >= 7.6
+
+  - name: fix /etc/network/interfaces - set IPv6 address (if defined)
+    template: src=interfaces.j2 dest=/etc/network/interfaces
+    delegate_to: "{{vm0.srv.ip4}}"
+    become: yes
+    when: vm0.srv.ip6 is defined
+    vars:
+      ansible_user: root
+      ip6: "{{vm0.srv.ip6}}"
 
   when: state == 'pristine'
 
@@ -35,3 +61,28 @@
     register: vm
 
   when: state == 'present'
+
+- block:
+
+  - name: Return 'um' fact (on rebuild)
+    set_fact:
+      um:
+        ip4: "{{ vm0.srv.ip4 }}"
+        ip6: "{{ vm0.srv.ip6 | default(none) }}"
+        server: "{{ vm0.srv }}"
+    when: vm0 is success and vm0 is not skipped
+
+  - name: Return 'um' fact (no rebuild)
+    set_fact:
+      um:
+        ip4: "{{ vm.srv.ip4 }}"
+        ip6: "{{ vm.srv.ip6 | default(none) }}"
+        server: "{{ vm.srv }}"
+    when: vm is success and vm is not skipped
+
+  - name: Disable root password
+    user: name=root password='!'
+    delegate_to: "{{um.ip4}}"
+    vars:
+      ansible_user: root
+      ansible_ssh_extra_args: '-o PasswordAuthentication=no'
