@@ -90,8 +90,8 @@ class SmartVM(object):
         b = 'busy'
         n = 'name'
         keys = (z, i, o, b, n)
-        if det1 and  all(k in det1 for k in keys):
-            self.id   = det1[i]
+        if det1 and all(k in det1 for k in keys):
+            self.id = det1[i]
             self.name = det1[n]
             self.isON = det1[o]
             self.busy = det1[b]
@@ -101,9 +101,13 @@ class SmartVM(object):
 
     def waitOK(self):
         end_time = time.time() + self.wait_time
+        errors = 0
         while time.time() < end_time:
             time.sleep(min(2, end_time - time.time()))
-            self.get_vm()
+            try:
+                self.get_vm()
+            except TypeError:
+                errors += 1
             if self.busy is not None and not self.busy: return True
         return False
 
