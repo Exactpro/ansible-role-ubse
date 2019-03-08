@@ -11,32 +11,36 @@
       wait_time: "{{ wait_minutes * 60 }}"
       timeout: 12
     delegate_to: localhost
-    register: vm0
+    register: t0
+
+  - name: Fill 'vm' details (on rebuild)
+    set_fact:
+      vm: "{{ vm|combine({'ip4':t0.srv.ip4, 'ip6':t0.srv.ip6|default(none), 'server':t0.srv}, recursive=True) }}"
 
   - name: Delete old SSH host keys if any
     known_hosts:
       state: absent
       host: "{{ item }}"
     delegate_to: localhost
-    when: vm0 is success
-    loop: [ "{{ vm0.srv.ip4 }}", "{{ ansible_host }}" ]
+    when: t0 is success
+    loop: [ "{{ t0.srv.ip4 }}", "{{ ansible_host }}" ]
 
   - name: Add ssh pubkey to ~root/.ssh/authorized_keys
     authorized_key: user=root state=present key={{ root_pubkey }}
-    #delegate_to: "{{vm0.srv.ip4}}"
+    #delegate_to: "{{t0.srv.ip4}}"
     vars:
       ansible_port: 22
-      ansible_ssh_pass: "{{ vm0.srv.password0 }}"
+      ansible_ssh_pass: "{{ t0.srv.password0 }}"
       ansible_user: root
       ansible_ssh_extra_args: '-o StrictHostKeyChecking=accept-new' # need OpenSSH >= 7.6
 
   - name: fix /etc/network/interfaces - set IPv6 address (if defined)
     template: src=interfaces.j2 dest=/etc/network/interfaces
-    #delegate_to: "{{vm0.srv.ip4}}"
-    when: vm0.srv.ip6 is defined
+    #delegate_to: "{{t0.srv.ip4}}"
+    when: t0.srv.ip6 is defined
     vars:
       ansible_user: root
-      ip6: "{{vm0.srv.ip6}}"
+      ip6: "{{t0.srv.ip6}}"
 
   when: state == 'pristine'
 
@@ -54,36 +58,22 @@
       wait_time: "{{ wait_minutes * 60 }}"
       timeout: 12
     delegate_to: localhost
-    register: um0
+    register: t1
+
+  - name: Fill 'vm' details (no rebuild)
+    set_fact:
+      vm: "{{ vm|combine({'ip4':t1.srv.ip4, 'ip6':t1.srv.ip6|default(none), 'server':t1.srv}, recursive=True) }}"
 
   when: state == 'present'
 
-- name: Set 'um' fact (on rebuild)
-  set_fact:
-    um:
-      ip4: "{{ vm0.srv.ip4 }}"
-      ip6: "{{ vm0.srv.ip6 | default(none) }}"
-      server: "{{ vm0.srv }}"
-  when: vm0 is success and vm0 is not skipped
-
-- name: Set 'um' fact (no rebuild)
-  set_fact:
-    um:
-      ip4: "{{ um0.srv.ip4 }}"
-      ip6: "{{ um0.srv.ip6 | default(none) }}"
-      server: "{{ um0.srv }}"
-  when: um0 is success and um0 is not skipped
-
 - name: Disable root password
   user: name=root password='!'
-  #delegate_to: "{{um.ip4}}"
   vars:
     ansible_user: root
     ansible_ssh_extra_args: '-o PasswordAuthentication=no'
 
 - name: check presence of /dev/vg/lv_swap
   shell: "if [ -b /dev/vg/lv_swap ]; then echo vg-lv_swap; fi"
-  #delegate_to: "{{um.ip4}}"
   register: res
   changed_when: no
   vars:
@@ -101,31 +91,26 @@
 
   - name: Turn-off swap
     shell: "if [ -b /dev/vg/lv_swap ]; then /sbin/swapoff /dev/mapper/vg-lv_swap; fi"
-    #delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
 
   - name: Delete swap from /etc/fstab
     lineinfile: dest=/etc/fstab line="/dev/mapper/vg-lv_swap none            swap    sw              0       0" state=absent
-    #delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
 
   - name: Delete LV
     shell: "/sbin/lvremove -f /dev/vg/lv_swap"
-    #delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
 
   - name: Extend LV lv_root
     shell: "/sbin/lvextend -l +100%FREE /dev/vg/lv_root"
-    #delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
 
   - name: Extend lv_root's / filesystem
     shell: "/sbin/resize2fs /dev/vg/lv_root"
-    #delegate_to: "{{um.ip4}}"
     vars:
       ansible_user: root
 
