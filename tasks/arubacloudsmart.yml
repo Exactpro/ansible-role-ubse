@@ -1,65 +1,9 @@
-- block:
-  - name: If state==pristine ensure server is like new. ETA 3-{{wait_minutes}} minutes.
-    it_aruba_smart_vm:
-      state: pristine
-      user: "{{ aruba_account }}"
-      password: "{{ aruba_password }}"
-      dc: "{{ dc }}"
-      name: "{{ vm_name }}"
-      wait: true
-      wait_time: "{{ wait_minutes * 60 }}"
-      timeout: 12
-    delegate_to: localhost
-    register: t0
-  - name: Fill 'vm' details (on rebuild)
-    loop:
-      - {'k':'vm', 'v':"{{ vm|combine({'ip4':t0.srv.ip4, 'ip6':t0.srv.ip6|default(omit), 'server':t0.srv}, recursive=True) }}"}
-      - {'k':'ansible_user', 'v':'root'}
-      - {'k':'ansible_port', 'v': 22}
-    set_fact:
-      "{{ item['k'] }}": "{{ item['v'] }}"
-
-  - name: Delete old SSH host keys if any
-    known_hosts:
-      state: absent
-      host: "{{ item }}"
-    delegate_to: localhost
-    when: t0 is success
-    loop: [ "{{ t0.srv.ip4 }}", "{{ ansible_host }}" ]
-
-  - name: Add ssh pubkey to ~root/.ssh/authorized_keys
-    authorized_key: user=root state=present key={{ root_pubkey }}
-    vars:
-      ansible_ssh_pass: "{{ t0.srv.password0 }}"
-      ansible_ssh_extra_args: '-o StrictHostKeyChecking=accept-new' # need OpenSSH >= 7.6
-
-  - name: fix /etc/network/interfaces - set IPv6 address (if defined)
-    template: src=interfaces.j2 dest=/etc/network/interfaces
-    when: t0.srv.ip6 is defined
-    vars:
-      ip6: "{{t0.srv.ip6}}"
-
+- name: If state==pristine ...
+  include_tasks: aruba-anew.yml
   when: state == 'pristine'
 
-- block:
-  - name: If state==present find or create server, ensure it's ON. ETA 3-{{wait_minutes}} minutes.
-    it_aruba_smart_vm:
-      state: present
-      user: "{{ aruba_account }}"
-      password: "{{ aruba_password }}"
-      dc: "{{ dc }}"
-      name: "{{ vm_name }}"
-      wait: true
-      wait_time: "{{ wait_minutes * 60 }}"
-      timeout: 12
-    delegate_to: localhost
-    register: t1
-  - name: Fill 'vm' details (no rebuild)
-    loop:
-      - {'k':'vm', 'v':"{{ vm|combine({'ip4':t1.srv.ip4, 'ip6':t1.srv.ip6|default(omit), 'server':t1.srv}, recursive=True) }}"}
-      - {'k':'ansible_user', 'v':'root'}
-    set_fact:
-      "{{ item['k'] }}": "{{ item['v'] }}"
+- name: If state==present ...
+  include_tasks: aruba-present.yml
   when: state == 'present'
 
 - name: Disable root password
@@ -67,11 +11,11 @@
   vars:
     ansible_ssh_extra_args: '-o PasswordAuthentication=no'
 
-- name: Check /dev/vg/lv_swap presence.
+- name: Check /dev/vg/lv_swap presence
   shell: "if [ -b /dev/vg/lv_swap ]; then echo vg-lv_swap; fi"
   register: t0
   changed_when: no
 
-- name: If /dev/vg/lv_swap found, stop using it for swap and reclaim its space.
-  include_tasks: tasks/reclaim-swrsvd.yml
+- name: If lv_swap found, stop using it for swap and reclaim its space
+  include_tasks: reclaim-swrsvd.yml
   when: t0.stdout == "vg-lv_swap"

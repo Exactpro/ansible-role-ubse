@@ -1,12 +1,9 @@
 - name: Delete swap from /etc/fstab
   lineinfile: dest=/etc/fstab line="/dev/mapper/vg-lv_swap none            swap    sw              0       0" state=absent
-  vars:
-    ansible_user: root
 
-- name: Extend LV lv_root
-  shell: "{{ item }}"
-  loop:
-    - "if [ -b /dev/vg/lv_swap ]; then /sbin/swapoff /dev/mapper/vg-lv_swap; fi"  # turn-off swap
-    - "/sbin/lvremove -f /dev/vg/lv_swap"  # delete LV
-    - "/sbin/lvextend -l +100%FREE /dev/vg/lv_root"  # extend LV lv_root
-    - "/sbin/resize2fs /dev/vg/lv_root"  # extend lv_root's / filesystem
+- name: Turn off swap, delete lv_swap, extend lv_root && resize2fs
+  shell: >
+    if [ -b /dev/vg/lv_swap ]; then /sbin/swapoff /dev/mapper/vg-lv_swap; fi;
+    /sbin/lvremove -f /dev/vg/lv_swap &&
+    /sbin/lvextend -l +100%FREE /dev/vg/lv_root &&
+    /sbin/resize2fs /dev/vg/lv_root
