@@ -1,2 +1,2 @@
-- include_tasks: "{{ vm_provider }}.yml"
-  when: vm_provider is defined
+- include_tasks: "{{ vm.cloud }}.yml"
+  when: vm is defined and vm.cloud is defined

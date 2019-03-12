@@ -19,3 +19,7 @@
 - name: If lv_swap found, stop using it for swap and reclaim its space
   include_tasks: reclaim-swrsvd.yml
   when: t0.stdout == "vg-lv_swap"
+
+- name: Ensure desired SSH port
+  include_tasks: ssh-port.yml
+  when: todo_port != ansible_port

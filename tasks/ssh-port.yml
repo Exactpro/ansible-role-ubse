@@ -1,63 +1,23 @@
 # https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
-- fail: msg="ssh_set_port is not set!"
-  when: ssh_set_port is not defined
+- fail: msg="todo_port is not set!"
+  when: todo_port is not defined
 
-- name: Check port 22 is open
-  wait_for:
-    port: 22
-    host: "{{ ansible_host }}"
-    connect_timeout: 30
-    timeout: "{{ wait_ssh }}"
-  delegate_to: localhost
-  ignore_errors: yes
-  register: default_ssh
-
-- name: Use ansible_port=22 if open
-  set_fact: ansible_port=22
-  when: default_ssh is defined and
-        default_ssh.state is defined and
-        default_ssh.state == 'started'
-  register: ssh_port_set
-
-- name: Check SSH port {{ ssh_set_port }}, skip if 22 is OK
-  wait_for:
-    port: "{{ ssh_set_port }}"
-    host: "{{ ansible_host }}"
-    connect_timeout: 5
-    timeout: 2
-  delegate_to: localhost
-  ignore_errors: yes
-  register: configured_ssh
-  when: default_ssh is defined and
-        default_ssh.state is undefined
-
-- name: Set SSH port {{ ssh_set_port }} if check OK.
-  set_fact: ansible_port={{ ssh_set_port }}
-  when: configured_ssh is defined and
-        configured_ssh.state is defined and
-        configured_ssh.state == "started"
-  register: ssh_port_set
-
-- name: Fail if neither SSH port is open
-  fail: msg="Neither 22 nor {{ ssh_set_port }} is open!"
-  when: ssh_port_set is undefined
-
-- name: Confirm host connection works
-  ping:
-
-- name: Setup SSH Port {{ ssh_set_port }} ; no UseDNS, AcceptEnv.
-  become: yes
+- name: Set SSH Port {{ todo_port }}, no UseDNS, AcceptEnv
   lineinfile: >
     path=/etc/ssh/sshd_config
     regexp='^#?{{ item.key }}'
     line='{{ item.key }} {{ item.value }}'
     validate='/usr/sbin/sshd -t -f %s'
+  register: s0
   with_items:
-    - {key: 'Port', value: '{{ ssh_set_port }}'}
+    - {key: 'Port', value: '{{ todo_port }}'}
     - {key: 'UseDNS', value: 'no'}
     - {key: 'AcceptEnv', value: ''}
 
 - name: Restart sshd
-  become: yes
   service: name=ssh state=restarted
+  when: s0 is changed
   changed_when: false
+
+- name: Use port {{ todo_port }} from now
+  set_fact: ansible_port={{ todo_port }}

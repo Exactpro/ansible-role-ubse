@@ -3,24 +3,23 @@
     state: present
     user: "{{ aruba_account }}"
     password: "{{ aruba_password }}"
-    dc: "{{ dc }}"
-    name: "{{ vm_name }}"
+    dc: "{{ vm.dc }}"
+    name: "{{ vm.name }}"
     wait: true
     wait_time: "{{ wait_minutes * 60 }}"
     timeout: 12
   delegate_to: localhost
   register: t1
 
-- name: Use default SSH port, if new server ...
-  debug: msg="TODO port change ..."
-  when: t1 is changed and ansible_port != 22
-
 - name: Fill 'vm' details (no rebuild)
   loop:
     - {'k':'vm', 'v':"{{ vm|combine({'ip4':t1.srv.ip4, 'ip6':t1.srv.ip6|default(omit), 'server':t1.srv}, recursive=True) }}"}
     - {'k':'ansible_host', 'v':'{{ t1.srv.ip4 }}'}
     - {'k':'ansible_user', 'v':'root'}
-    - {'k':'todo_port', 'v':'{{ ansible_port }}'}  # save inventory target
-    - {'k':'ansible_port', 'v': 22}
+    - {'k':'todo_port', 'v':'{{ ansible_port }}'}  # save target
   set_fact:
     "{{ item['k'] }}": "{{ item['v'] }}"
+
+- name: Use default SSH port, if new server ...
+  set_fact: ansible_port=22
+  when: t1 is changed and ansible_port != 22

@@ -1,0 +1,13 @@
+- name: Find or create server. ETA 2-{{wait_minutes}} minutes.
+  digital_ocean_droplet:
+    name: "{{ vm.name }}"
+    region: "{{ vm.dc }}"
+    size: "{{ vm.size }}"
+    image: "{{ vm.image }}"
+    ssh_keys: "{{ pubkeyid }}"
+    ipv6: "{{ vm.doIPv6 }}"
+    private_networking: "{{ vm.private_net }}"
+    oauth_token: "{{ do_api_token }}"
+    wait_timeout: "{{ wait_minutes * 60 }}"  # default is 120
+  delegate_to: localhost
+  register: t1

@@ -3,8 +3,8 @@
     state: pristine
     user: "{{ aruba_account }}"
     password: "{{ aruba_password }}"
-    dc: "{{ dc }}"
-    name: "{{ vm_name }}"
+    dc: "{{ vm.dc }}"
+    name: "{{ vm.name }}"
     wait: true
     wait_time: "{{ wait_minutes * 60 }}"
     timeout: 12
