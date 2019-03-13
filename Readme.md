@@ -19,23 +19,32 @@ None.
 ## Example Playbook
 
 ```
-  - hosts: localhost
-    vars:
-      vm_provider: digitalocean
-      state: present
-      wait_minutes: 4
-      do_api_token: xxxxx
-      pubkeyid: 235505
-      dc: fra1
-      name: s1.example.com
-      size:  s-1vcpu-1gb
-      image: debian-8-x64
-      needIPv6: yes
-      private_net: no
-    roles:
-      - role: exactpro.um
-    tasks:
-      - debug: msg="Droplet {{ vm.data.droplet.name }} {{ vm.data.ip_address }}"
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - add_host:
+        name: s1
+        ansible_port: 2222
+        vm:
+          cloud: digitalocean
+          dc: fra1
+          name: s1.example.com
+          size:  s-1vcpu-1gb
+          image: debian-8-x64
+          private_net: yes
+          doIPv6: yes
+- hosts: s1
+  gather_facts: no
+  tasks:
+    - include_role: name=exactpro.um
+      vars:
+        do_api_token: "{{ lookup('file', '~/.ssh/do/my.apikey') }}"
+        pubkeyid: 235505
+        wait_minutes:  4     # max time to create VM, usually it's under 2 minutes
+        wait_ssh:     25     # max wait for SSH to come up
+        state: pristine
+      register: m1
+    - debug: msg="Host {{ inventory_hostname }} {{ ansible_host }}:{{ ansible_port }}"
 ```
 
 ## Issues
@@ -48,4 +57,5 @@ MIT / BSD
 
 ## Author Information
 
-This is a work in progress by Mark Zhitomiskiy mz@exactpro.com
+This is a work in progress by Mark Zhitomirskiy mz@exactpro.com
+```
