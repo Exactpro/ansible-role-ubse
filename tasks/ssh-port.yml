@@ -1,7 +1,4 @@
 # https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
-- fail: msg="todo_port is not set!"
-  when: todo_port is not defined
-
 - name: Set SSH Port {{ todo_port }}, no UseDNS, AcceptEnv
   lineinfile: >
     path=/etc/ssh/sshd_config

@@ -1,4 +1,4 @@
-- name: Find or create server, ensure it's ON. ETA 3-{{wait_minutes}} minutes
+- name: Find or create server, ensure it's ON. ETA 3-{{ wait_minutes }} minutes
   it_aruba_smart_vm:
     state: present
     user: "{{ aruba_account }}"

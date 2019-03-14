@@ -1,4 +1,4 @@
-- name: Ensure server is like new. ETA 2-{{wait_minutes}} minutes.
+- name: Ensure server is like new. ETA 2-{{ wait_minutes }} minutes.
   digital_ocean_droplet:
     rebuild: yes
     name: "{{ vm.name }}"

@@ -1,4 +1,4 @@
-- name: Find or create server. ETA 2-{{wait_minutes}} minutes.
+- name: Find or create server. ETA 2-{{ wait_minutes }} minutes.
   digital_ocean_droplet:
     name: "{{ vm.name }}"
     region: "{{ vm.dc }}"

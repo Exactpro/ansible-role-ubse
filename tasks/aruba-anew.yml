@@ -1,4 +1,4 @@
-- name: Ensure server is like new. ETA 3-{{wait_minutes}} minutes
+- name: Ensure server is like new. ETA 3-{{ wait_minutes }} minutes
   it_aruba_smart_vm:
     state: pristine
     user: "{{ aruba_account }}"
@@ -39,4 +39,4 @@
   template: src=interfaces.j2 dest=/etc/network/interfaces
   when: t0.srv.ip6 is defined
   vars:
-    ip6: "{{t0.srv.ip6}}"
+    ip6: "{{ t0.srv.ip6 }}"
